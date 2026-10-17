@@ -174,4 +174,5 @@ public class InternshipApplicationRepository {
             return rowsAffected > 0;
         }
     }
+
 }

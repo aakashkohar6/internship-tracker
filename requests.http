@@ -1,1 +1,1 @@
-GET http://localhost:8080/applications?status=INTERVIEW&page=0&size=5
+GET http://localhost:8080/applications?page=0&size=2

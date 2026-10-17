@@ -47,7 +47,7 @@ public class InternshipApplicationService {
         }
         ArrayList<InternshipApplication> content = repository.findPage(status, company, page, size);
         int totalElements = repository.count(status, company);
-        int totalPages = (totalElements+size-1)/size;
+        int totalPages = (totalElements + size - 1)/size;
         return new PageResponse(content,page,size,totalElements, totalPages);
     }
 }
