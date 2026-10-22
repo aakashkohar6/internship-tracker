@@ -34,3 +34,5 @@ bin/
 
 # Maven build output
 target/
+
+.env

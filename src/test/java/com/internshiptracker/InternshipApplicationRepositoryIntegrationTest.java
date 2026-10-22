@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
+import org.mariadb.jdbc.MariaDbDataSource;
+import javax.sql.DataSource;
 
 
 public class InternshipApplicationRepositoryIntegrationTest {
@@ -18,10 +20,19 @@ public class InternshipApplicationRepositoryIntegrationTest {
             );
         }
     }
+    private DataSource createTestDataSource() throws SQLException {
+        MariaDbDataSource dataSource = new MariaDbDataSource();
+
+        dataSource.setUrl(System.getenv("DB_URL"));
+        dataSource.setUser("internship_app_user");
+        dataSource.setPassword(System.getenv("DB_PASSWORD"));
+
+        return dataSource;
+    }
 
     @Test
     void shouldFindSavedApplicationById() throws SQLException {
-        InternshipApplicationRepository repository = new InternshipApplicationRepository();
+        InternshipApplicationRepository repository = new InternshipApplicationRepository(createTestDataSource());
         InternshipApplication application =
                 new InternshipApplication(
                         "IntegrationTestCompany",
@@ -44,7 +55,7 @@ public class InternshipApplicationRepositoryIntegrationTest {
 
     @Test
     void shouldUpdateApplicationStatus() throws SQLException {
-        InternshipApplicationRepository repository = new InternshipApplicationRepository();
+        InternshipApplicationRepository repository = new InternshipApplicationRepository(createTestDataSource());
         InternshipApplication application =
                 new InternshipApplication(
                         "IntegrationTestCompany",
@@ -68,7 +79,7 @@ public class InternshipApplicationRepositoryIntegrationTest {
 
     @Test
     void shouldDeleteSavedApplication() throws SQLException {
-        InternshipApplicationRepository repository = new InternshipApplicationRepository();
+        InternshipApplicationRepository repository = new InternshipApplicationRepository(createTestDataSource());
         InternshipApplication application =
                 new InternshipApplication(
                         "IntegrationTestCompany",
@@ -91,7 +102,7 @@ public class InternshipApplicationRepositoryIntegrationTest {
 
     @Test
     void shouldFilterApplicationsByCompany() throws SQLException {
-        InternshipApplicationRepository repository = new InternshipApplicationRepository();
+        InternshipApplicationRepository repository = new InternshipApplicationRepository(createTestDataSource());
         InternshipApplication application =
                 new InternshipApplication(
                         "IntegrationTestCompany",
@@ -129,7 +140,7 @@ public class InternshipApplicationRepositoryIntegrationTest {
 
     @Test
     void shouldFilterApplicationsByStatus() throws SQLException {
-        InternshipApplicationRepository repository = new InternshipApplicationRepository();
+        InternshipApplicationRepository repository = new InternshipApplicationRepository(createTestDataSource());
         InternshipApplication application =
                 new InternshipApplication(
                         "IntegrationTestCompany",
@@ -165,7 +176,7 @@ public class InternshipApplicationRepositoryIntegrationTest {
     }
     @Test
     void shouldReturnCorrectPage() throws SQLException{
-        InternshipApplicationRepository repository = new InternshipApplicationRepository();
+        InternshipApplicationRepository repository = new InternshipApplicationRepository(createTestDataSource());
         ArrayList<InternshipApplication> applications = new ArrayList<>();
 
         try{

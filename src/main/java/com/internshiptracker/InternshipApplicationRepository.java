@@ -1,6 +1,8 @@
 package com.internshiptracker;
 
 import org.springframework.stereotype.Repository;
+
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,10 +12,15 @@ import java.sql.Statement;
 
 @Repository
 public class InternshipApplicationRepository {
+    private final DataSource dataSource;
+
+    public InternshipApplicationRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
     public InternshipApplication findById(int id) throws SQLException{
         String sql = "SELECT * FROM internship_applications WHERE id = ?";
 
-        try(Connection connection = DatabaseConnection.getConnection();
+        try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql))
         {
             statement.setInt(1,id);
@@ -49,7 +56,7 @@ public class InternshipApplicationRepository {
 
         ArrayList<InternshipApplication> applications = new ArrayList<>();
 
-        try(Connection connection = DatabaseConnection.getConnection();
+        try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sqlString)
         )
         {
@@ -89,7 +96,7 @@ public class InternshipApplicationRepository {
         }
         String sqlString = sql.toString();
         int count = 0;
-        try(Connection connection = DatabaseConnection.getConnection();
+        try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sqlString)
         ){
             int parameterIndex = 1;
@@ -128,7 +135,7 @@ public class InternshipApplicationRepository {
         String sql =
                 "INSERT INTO internship_applications "+ "(company, position, status, location) " +
                  "VALUES(?,?,?,?)";
-        try(Connection connection = DatabaseConnection.getConnection();
+        try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
         {
             statement.setString(1, application.getCompany());
@@ -154,7 +161,7 @@ public class InternshipApplicationRepository {
         String sql = "UPDATE internship_applications " +
                 "SET status = ? " + "WHERE id = ? ";
 
-        try(Connection connection = DatabaseConnection.getConnection();
+        try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql))
         {
             statement.setString(1, newStatus.name());
@@ -166,7 +173,7 @@ public class InternshipApplicationRepository {
 
     public boolean deleteById(int id) throws SQLException{
         String sql = "DELETE FROM internship_applications " + "WHERE id = ?";
-        try(Connection connection = DatabaseConnection.getConnection();
+        try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql))
         {
             statement.setInt(1,id);
@@ -174,5 +181,4 @@ public class InternshipApplicationRepository {
             return rowsAffected > 0;
         }
     }
-
 }
