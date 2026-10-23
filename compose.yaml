@@ -9,7 +9,6 @@ services:
       MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      - ./database/compose-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
 
     healthcheck:
       test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]

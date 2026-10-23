@@ -1,0 +1,2 @@
+ALTER TABLE internship_applications
+ADD COLUMN application_date DATE;
