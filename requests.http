@@ -1,0 +1,66 @@
+### 1. Register a new user
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "username": "example_user",
+  "password": "ChooseYourOwnPassword123!"
+}
+
+
+### 2. Log in
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "username": "example_user",
+  "password": "ChooseYourOwnPassword123!"
+}
+
+
+### 3. Get CSRF token (requires login)
+GET http://localhost:8080/auth/csrf
+
+
+### 4. Get all applications (requires login)
+GET http://localhost:8080/applications
+
+
+### 5. Get one application (requires login)
+GET http://localhost:8080/applications/1
+
+
+### 6. Create an application (requires login and CSRF token)
+POST http://localhost:8080/applications
+Content-Type: application/json
+X-CSRF-Token: REPLACE_WITH_CSRF_TOKEN
+
+{
+  "company": "Example Company",
+  "position": "Software Engineering Intern",
+  "status": "APPLIED"
+}
+
+
+### 7. Update an application's status
+PATCH http://localhost:8080/applications/1
+Content-Type: application/json
+X-CSRF-Token: REPLACE_WITH_CSRF_TOKEN
+
+{
+  "status": "INTERVIEW"
+}
+
+
+### 8. Delete an application
+DELETE http://localhost:8080/applications/1
+X-CSRF-Token: REPLACE_WITH_CSRF_TOKEN
+
+
+### 9. Log out
+POST http://localhost:8080/auth/logout
+X-CSRF-Token: REPLACE_WITH_CSRF_TOKEN
+
+
+### 10. Check application health
+GET http://localhost:8080/actuator/health

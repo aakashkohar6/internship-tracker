@@ -4,11 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,7 +25,48 @@ public class InternshipApplicationServiceTest {
                         "New York"
                 );
         assertThrows(IllegalArgumentException.class, () -> {
-            service.addApplication(application);
+            service.addApplication(application, 1);
+        });
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void shouldRejectBlankPosition() throws SQLException {
+        InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
+
+        InternshipApplicationService service = new InternshipApplicationService(repository);
+        InternshipApplication application = new InternshipApplication(
+                "Google", "  ", ApplicationStatus.APPLIED, "New York");
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.addApplication(application, 1);
+        });
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void shouldRejectNullStatus() throws SQLException {
+        InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
+
+        InternshipApplicationService service = new InternshipApplicationService(repository);
+        InternshipApplication application = new InternshipApplication(
+                "Google",
+                "Software Engineer Intern",
+                null,
+                "New York");
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.addApplication(application,1);
+        });
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void shouldRejectNullStatusUpdate() throws SQLException {
+        InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
+
+        InternshipApplicationService service = new InternshipApplicationService(repository);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.updateStatus(3,null, 1);
         });
         verifyNoInteractions(repository);
     }
@@ -36,7 +75,7 @@ public class InternshipApplicationServiceTest {
     void shouldRejectNullApplication() throws SQLException{
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
-        assertThrows(IllegalArgumentException.class, () -> {service.addApplication(null);});
+        assertThrows(IllegalArgumentException.class, () -> {service.addApplication(null,1);});
         verifyNoInteractions(repository);
     }
 
@@ -55,8 +94,8 @@ public class InternshipApplicationServiceTest {
                         ApplicationStatus.APPLIED,
                         "New York"
                 );
-        service.addApplication(application);
-        verify(repository).save(application);
+        service.addApplication(application,1);
+        verify(repository).save(application,1);
     }
 
     @Test
@@ -64,7 +103,7 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
         assertThrows(IllegalArgumentException.class, ()->{
-            service.getApplications(null,null, -1, 10);});
+            service.getApplications(null,null, -1, 10, 1);});
         verifyNoInteractions(repository);
     }
 
@@ -73,7 +112,7 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
         assertThrows(IllegalArgumentException.class, () -> {
-            service.getApplications(null, null, 0,0);});
+            service.getApplications(null, null, 0,0, 1);});
         verifyNoInteractions(repository);
     }
     @Test
@@ -81,11 +120,11 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.findPage(null, null, 0, 10))
+        when(repository.findPage(null, null, 0, 10, 1))
                 .thenReturn(new ArrayList<>());
-        when(repository.count(null,null)).thenReturn(23);
+        when(repository.count(null,null, 1)).thenReturn(23);
 
-        PageResponse response = service.getApplications(null, null, 0, 10);
+        PageResponse response = service.getApplications(null, null, 0, 10, 1);
 
         assertEquals(3, response.totalPages());
         assertEquals(0, response.page());
@@ -98,11 +137,11 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.findPage(null, null, 0, 10))
+        when(repository.findPage(null, null, 0, 10, 1))
                 .thenReturn(new ArrayList<>());
-        when(repository.count(null,null)).thenReturn(20);
+        when(repository.count(null,null, 1)).thenReturn(20);
 
-        PageResponse response = service.getApplications(null, null, 0, 10);
+        PageResponse response = service.getApplications(null, null, 0, 10, 1);
 
         assertEquals(2, response.totalPages());
     }
@@ -112,11 +151,11 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.findPage(null, null, 0, 10))
+        when(repository.findPage(null, null, 0, 10, 1))
                 .thenReturn(new ArrayList<>());
-        when(repository.count(null,null)).thenReturn(0);
+        when(repository.count(null,null, 1)).thenReturn(0);
 
-        PageResponse response = service.getApplications(null, null, 0, 10);
+        PageResponse response = service.getApplications(null, null, 0, 10, 1);
 
         assertEquals(0, response.totalPages());
     }
@@ -126,13 +165,13 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.findPage(ApplicationStatus.INTERVIEW, "Google", 1, 5))
+        when(repository.findPage(ApplicationStatus.INTERVIEW, "Google", 1, 5,1))
                 .thenReturn(new ArrayList<>());
-        PageResponse response = service.getApplications(ApplicationStatus.INTERVIEW, "Google", 1,5);
+        PageResponse response = service.getApplications(ApplicationStatus.INTERVIEW, "Google", 1,5,1);
 
         assertEquals(1,response.page());
-        verify(repository).findPage(ApplicationStatus.INTERVIEW, "Google", 1, 5);
-        verify(repository).count(ApplicationStatus.INTERVIEW, "Google");
+        verify(repository).findPage(ApplicationStatus.INTERVIEW, "Google", 1, 5,1);
+        verify(repository).count(ApplicationStatus.INTERVIEW, "Google",1);
     }
 
     @Test
@@ -140,11 +179,11 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.findPage(ApplicationStatus.OA, null, 2, 10))
+        when(repository.findPage(ApplicationStatus.OA, null, 2, 10, 1))
                 .thenReturn(new ArrayList<>());
-        service.getApplications(ApplicationStatus.OA, "  ", 2,10);
-        verify(repository).findPage(ApplicationStatus.OA, null, 2, 10);
-        verify(repository).count(ApplicationStatus.OA, null);
+        service.getApplications(ApplicationStatus.OA, "  ", 2,10, 1);
+        verify(repository).findPage(ApplicationStatus.OA, null, 2, 10, 1);
+        verify(repository).count(ApplicationStatus.OA, null, 1);
     }
 
     @Test
@@ -152,10 +191,10 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.deleteById(99)).thenReturn(true);
-        boolean result = service.deleteById(99);
+        when(repository.deleteById(99,1)).thenReturn(true);
+        boolean result = service.deleteById(99, 1);
         assertTrue(result);
-        verify(repository).deleteById(99);
+        verify(repository).deleteById(99, 1);
     }
 
     @Test
@@ -163,9 +202,9 @@ public class InternshipApplicationServiceTest {
         InternshipApplicationRepository repository = mock(InternshipApplicationRepository.class);
         InternshipApplicationService service = new InternshipApplicationService(repository);
 
-        when(repository.deleteById(999)).thenReturn(false);
-        boolean result = service.deleteById(999);
+        when(repository.deleteById(999, 1)).thenReturn(false);
+        boolean result = service.deleteById(999, 1);
         assertFalse(result);
-        verify(repository).deleteById(999);
+        verify(repository).deleteById(999, 1);
     }
 }

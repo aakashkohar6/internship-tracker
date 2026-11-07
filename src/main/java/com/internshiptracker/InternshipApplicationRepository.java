@@ -3,6 +3,7 @@ package com.internshiptracker;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,15 +18,17 @@ public class InternshipApplicationRepository {
     public InternshipApplicationRepository(DataSource dataSource) {
         this.dataSource = dataSource;
     }
-    public InternshipApplication findById(int id) throws SQLException{
-        String sql = "SELECT * FROM internship_applications WHERE id = ?";
+
+    public InternshipApplication findById(int id, int userId) throws SQLException{
+        String sql = "SELECT * FROM internship_applications WHERE id = ? AND user_id = ?";
 
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql))
         {
             statement.setInt(1,id);
+            statement.setInt(2,userId);
 
-            try(ResultSet resultSet = statement.executeQuery();) {
+            try(ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapRowToApplication(resultSet);
                 }
@@ -35,20 +38,15 @@ public class InternshipApplicationRepository {
     }
 
     public ArrayList<InternshipApplication> findPage
-            (ApplicationStatus status, String company,int page, int size) throws SQLException{
+            (ApplicationStatus status, String company,int page, int size, int userId) throws SQLException{
         int offset = page * size;
-        StringBuilder sql = new StringBuilder("SELECT * FROM internship_applications ");
+        StringBuilder sql = new StringBuilder("SELECT * FROM internship_applications where user_id = ?");
 
         if(status != null){
-            sql.append(" WHERE status = ?");
+            sql.append(" AND status = ?");
         }
         if(company != null){
-            if(status == null){
-                sql.append(" WHERE company LIKE ?");
-            }
-            else{
-                sql.append(" AND company LIKE ?");
-            }
+            sql.append(" AND company LIKE ?");
         }
 
         sql.append(" ORDER BY id DESC LIMIT ? OFFSET ?");
@@ -60,7 +58,8 @@ public class InternshipApplicationRepository {
             PreparedStatement statement = connection.prepareStatement(sqlString)
         )
         {
-            int parameterIndex = 1;
+            statement.setInt(1, userId);
+            int parameterIndex = 2;
             if(status != null) {
                 statement.setString(parameterIndex++, status.name());
             }
@@ -80,26 +79,23 @@ public class InternshipApplicationRepository {
         return applications;
     }
 
-    public int count(ApplicationStatus status, String company) throws  SQLException{
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM internship_applications");
+    public int count(ApplicationStatus status, String company, int userId) throws  SQLException{
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) AS total FROM internship_applications WHERE user_id = ?");
 
         if(status != null){
-            sql.append(" WHERE status = ?");
+            sql.append(" AND status = ?");
         }
         if(company != null){
-            if(status == null){
-                sql.append(" WHERE company LIKE ?");
-            }
-            else{
-                sql.append(" AND company LIKE ?");
-            }
+            sql.append(" AND company LIKE ?");
         }
         String sqlString = sql.toString();
         int count = 0;
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sqlString)
         ){
-            int parameterIndex = 1;
+            statement.setInt(1,userId);
+            int parameterIndex = 2;
             if(status != null){
                 statement.setString(parameterIndex++,status.name());
             }
@@ -123,25 +119,30 @@ public class InternshipApplicationRepository {
 
         ApplicationStatus status =
                 ApplicationStatus.valueOf(resultSet.getString("status"));
+        LocalDate applicationDate = resultSet.getObject("application_date", LocalDate.class);
 
         String location = resultSet.getString("location");
 
         InternshipApplication application = new
-                InternshipApplication(applicationId, company,position,status,location);
+                InternshipApplication(applicationId, company,position,status,location, applicationDate);
         return application;
     }
 
-    public void save(InternshipApplication application) throws SQLException{
+    public void save(InternshipApplication application, int userId) throws SQLException{
         String sql =
-                "INSERT INTO internship_applications "+ "(company, position, status, location) " +
-                 "VALUES(?,?,?,?)";
+                "INSERT INTO internship_applications "+
+                        "(company, position, status, location, application_date, user_id) " +
+                 "VALUES(?,?,?,?,?,?)";
         try(Connection connection = dataSource.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
+            PreparedStatement statement = connection.prepareStatement(
+                    sql, Statement.RETURN_GENERATED_KEYS))
         {
             statement.setString(1, application.getCompany());
             statement.setString(2,application.getPosition());
             statement.setString(3, application.getStatus().name());
             statement.setString(4, application.getLocation());
+            statement.setObject(5, application.getApplicationDate());
+            statement.setInt(6, userId);
 
             statement.executeUpdate();
 
@@ -157,26 +158,28 @@ public class InternshipApplicationRepository {
         }
     }
 
-    public boolean updateStatus(int id, ApplicationStatus newStatus) throws SQLException {
+    public boolean updateStatus(int id, ApplicationStatus newStatus, int userId) throws SQLException {
         String sql = "UPDATE internship_applications " +
-                "SET status = ? " + "WHERE id = ? ";
+                "SET status = ? " + "WHERE id = ? AND user_id = ? ";
 
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql))
         {
             statement.setString(1, newStatus.name());
             statement.setInt(2,id);
+            statement.setInt(3,userId);
             int rowsAffected = statement.executeUpdate();
             return rowsAffected > 0;
         }
     }
 
-    public boolean deleteById(int id) throws SQLException{
-        String sql = "DELETE FROM internship_applications " + "WHERE id = ?";
+    public boolean deleteById(int id, int userId) throws SQLException{
+        String sql = "DELETE FROM internship_applications " + "WHERE id = ? AND user_id = ?";
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql))
         {
             statement.setInt(1,id);
+            statement.setInt(2,userId);
             int rowsAffected = statement.executeUpdate();
             return rowsAffected > 0;
         }
