@@ -1,5 +1,8 @@
 package com.internshiptracker;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
@@ -44,6 +47,17 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @ApiResponse(
+            responseCode = "204",
+            description = "Session invalidated successfully"
+    )
+
+    @Parameter(
+            name = "X-CSRF-Token",
+            description = "CSRF token obtained from GET /auth/csrf after login",
+            required = true,
+            in = ParameterIn.HEADER
+    )
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);

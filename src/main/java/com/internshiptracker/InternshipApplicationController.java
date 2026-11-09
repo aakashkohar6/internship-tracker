@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
 public class InternshipApplicationController {
@@ -107,6 +108,12 @@ public class InternshipApplicationController {
                     )
             )
     })
+    @Parameter(
+            name = "X-CSRF-Token",
+            description = "CSRF token obtained from GET /auth/csrf after login",
+            required = true,
+            in = io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+    )
     @PostMapping("/applications")
     public ResponseEntity<InternshipApplication> createApplication(
             @RequestBody CreateApplicationRequest request, HttpServletRequest requestSession)
@@ -134,6 +141,13 @@ public class InternshipApplicationController {
             @ApiResponse(responseCode = "204", description = "Application deleted successfully", content = @Content),
             @ApiResponse(responseCode = "404", description = "Application not found", content = @Content)
     })
+
+    @Parameter(
+            name = "X-CSRF-Token",
+            description = "CSRF token obtained from GET /auth/csrf after login",
+            required = true,
+            in = io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+    )
     @DeleteMapping("/applications/{id}")
     public ResponseEntity<Void> deleteApplicationById(
             @PathVariable int id, HttpServletRequest request) throws SQLException{
@@ -166,6 +180,13 @@ public class InternshipApplicationController {
                     )
                 )
     })
+
+    @Parameter(
+            name = "X-CSRF-Token",
+            description = "CSRF token obtained from GET /auth/csrf after login",
+            required = true,
+            in = io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER
+    )
     @PatchMapping("/applications/{id}")
     public ResponseEntity<Void> changeStatusByID(
             @PathVariable int id, @RequestBody UpdateStatusRequest request, HttpServletRequest servletRequest)

@@ -1,4 +1,3 @@
-
 # Internship Application Tracker
 
 A REST API built with Java, Spring Boot, and MariaDB that allows users to securely track and manage their internship applications.
@@ -66,6 +65,8 @@ This project was built to practice backend development, REST API design, relatio
 | Maven | Build and dependency management |
 | Docker | Containerization |
 | GitHub Actions | Continuous integration |
+| Render | Cloud application hosting |
+| Layerbase | Cloud MariaDB hosting |
 
 **Note:** Authentication and CSRF protection are implemented using HTTP sessions and a custom servlet filter. The project does not use the full Spring Security authentication framework.
 
@@ -198,6 +199,8 @@ The token must match the value stored in the authenticated session.
 The following examples use:
 
 `http://localhost:8080`
+
+For the deployed API, replace `http://localhost:8080` with `https://internship-tracker-c1ge.onrender.com`.
 
 ### 1. Register a User
 
@@ -406,16 +409,17 @@ Production database permissions should be more restrictive.
 
 The application uses environment variables for database configuration.
 
-| Variable | Description |
-|---|---|
-| `DB_URL` | MariaDB JDBC connection URL |
-| `DB_PASSWORD` | Password for the application database user |
+| Variable | Description | Required |
+|---|---|---|
+| `DB_URL` | MariaDB JDBC connection URL | Yes |
+| `DB_USERNAME` | Database username | No, defaults to `internship_app_user` |
+| `DB_PASSWORD` | Password for the application database user | Yes |
 
 #### Windows PowerShell
 
 ```powershell
 $env:DB_URL="jdbc:mariadb://localhost:3306/internship_tracker"
-
+$env:DB_USERNAME="internship_app_user"
 $env:DB_PASSWORD="your_password"
 ```
 
@@ -423,11 +427,17 @@ $env:DB_PASSWORD="your_password"
 
 ```bash
 export DB_URL="jdbc:mariadb://localhost:3306/internship_tracker"
-
+export DB_USERNAME="internship_app_user"
 export DB_PASSWORD="your_password"
 ```
 
-The database username is currently configured as `internship_app_user` in `application.properties`.
+The database username is configured in `application.properties` using:
+
+```properties
+spring.datasource.username=${DB_USERNAME:internship_app_user}
+```
+
+This means the application uses the value of `DB_USERNAME` when provided. Otherwise, it defaults to `internship_app_user`.
 
 Never commit real passwords, session cookies, CSRF tokens, or secret environment variables.
 
@@ -451,13 +461,19 @@ Flyway executes pending database migrations during startup.
 
 ## API Documentation
 
-Swagger UI is available at:
+Swagger UI is available locally at:
 
 `http://localhost:8080/swagger-ui/index.html`
 
-The OpenAPI specification is available at:
+The OpenAPI specification is available locally at:
 
 `http://localhost:8080/v3/api-docs`
+
+For the deployed application:
+
+**Swagger UI:** https://internship-tracker-c1ge.onrender.com/swagger-ui/index.html
+
+**OpenAPI Specification:** https://internship-tracker-c1ge.onrender.com/v3/api-docs
 
 Swagger provides interactive documentation for the REST API.
 
@@ -470,6 +486,10 @@ Spring Boot Actuator provides an application health endpoint:
 ```http
 GET http://localhost:8080/actuator/health
 ```
+
+The deployed health endpoint is available at:
+
+https://internship-tracker-c1ge.onrender.com/actuator/health
 
 Example response:
 
@@ -553,7 +573,7 @@ Run all automated tests with:
 mvn test
 ```
 
-The latest verified local test run completed with:
+The latest documented local test run completed with:
 
 ```text
 Tests run: 31
@@ -595,20 +615,39 @@ The application still requires a reachable MariaDB database and the correct envi
 
 ## Deployment
 
-Public deployment is currently in progress.
+The application is publicly deployed on Render as a Docker-based web service.
 
-The planned deployment platform is Render, using a Docker-based web service.
+**Live API:** https://internship-tracker-c1ge.onrender.com
 
-Deployment requirements include:
+**Health Check:** https://internship-tracker-c1ge.onrender.com/actuator/health
 
-- Java 21 runtime
-- Reachable MariaDB-compatible database
-- `DB_URL` environment variable
-- `DB_PASSWORD` environment variable
-- Correct HTTP port configuration
-- HTTPS for public access
+The deployed application connects to a separate cloud-hosted MariaDB database on Layerbase.
 
-The public deployment URL will be added after deployment succeeds.
+### Deployment Configuration
+
+The following environment variables are configured in Render:
+
+| Variable | Purpose |
+|---|---|
+| `DB_URL` | Cloud MariaDB JDBC connection URL |
+| `DB_USERNAME` | Cloud database username |
+| `DB_PASSWORD` | Cloud database password |
+
+Database credentials are stored as environment variables rather than committed to GitHub.
+
+### Production Verification
+
+The deployed API has been manually tested for:
+
+- User registration and login
+- Session cookie creation with `Secure`, `HttpOnly`, and `SameSite=Lax`
+- CSRF token retrieval and validation
+- Creating, retrieving, updating, and deleting internship applications
+- Successful logout and session invalidation
+- Rejection of unauthenticated requests
+- Application health checks
+
+The application uses Render's free service tier, so the first request after inactivity may be delayed while the service starts.
 
 ## Project Status
 
@@ -626,13 +665,9 @@ The public deployment URL will be added after deployment succeeds.
 - Application logging
 - Docker containerization
 - GitHub Actions continuous integration
-
-### Remaining
-
-- Complete public deployment
-- Verify deployed API functionality
-- Verify production database connectivity
-- Add the public deployment URL
+- Public deployment on Render
+- Cloud MariaDB integration with Layerbase
+- Production API verification
 
 ## Repository
 
